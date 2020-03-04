@@ -5,11 +5,6 @@ function eval() {
 
 function expressionCalculator(expr) {
   const tokenizedExpr = expr.match(/([+*-/)(]{1}|\d+)/g);
-
-  const peek = (stack, depth = 1) => stack[stack.length - depth];
-  const findOperator = token =>
-    Object.values(Operations).find(({ value }) => value === token);
-
   const Operations = {
     PLUS: {
       value: '+',
@@ -34,16 +29,37 @@ function expressionCalculator(expr) {
     RIGHT: ')',
   };
 
+  const peek = (stack, depth = 1) => stack[stack.length - depth];
+  const findOperator = token =>
+    Object.values(Operations).find(({ value }) => value === token);
+
   const isLeft = operator => operator === Parenthesis.LEFT;
   const isRight = operator => operator === Parenthesis.RIGHT;
-  const isParenthesis = operator =>
-    operator === Parenthesis.RIGHT || operator === Parenthesis.LEFT;
+  const switchOperator = (operator, arg1, arg2) => {
+    let result;
+    switch (operator) {
+      case '+':
+        result = +arg1 + +arg2;
+        break;
+      case '-':
+        result = +arg1 - +arg2;
+        break;
+      case '/':
+        result = +arg1 / +arg2;
+        break;
+      case '*':
+        result = +arg1 * +arg2;
+        break;
+    }
+    return result;
+  };
 
   if (
     tokenizedExpr.filter(e => e === Parenthesis.LEFT).length !==
     tokenizedExpr.filter(e => e === Parenthesis.RIGHT).length
-  )
+  ) {
     throw new Error('ExpressionError: Brackets must be paired');
+  }
 
   const operandStack = [];
   const operatorStack = [];
@@ -68,23 +84,11 @@ function expressionCalculator(expr) {
         const arg2 = operandStack.pop();
         const operator = operatorStack.pop();
         const arg1 = operandStack.pop();
-        let result;
-        switch (operator) {
-          case '+':
-            result = +arg1 + +arg2;
-            break;
-          case '-':
-            result = +arg1 - +arg2;
-            break;
-          case '/':
-            result = +arg1 / +arg2;
-            break;
-          case '*':
-            result = +arg1 * +arg2;
-            break;
-        }
-        if (result === Infinity)
+        let result = switchOperator(operator, arg1, arg2);
+
+        if (result === Infinity) {
           throw new TypeError('TypeError: Division by zero.');
+        }
 
         operandStack.push(result);
       }
@@ -109,24 +113,11 @@ function expressionCalculator(expr) {
       const arg2 = operandStack.pop();
       const operator = operatorStack.pop();
       const arg1 = operandStack.pop();
-      let result;
+      let result = switchOperator(operator, arg1, arg2);
 
-      switch (operator) {
-        case '+':
-          result = +arg1 + +arg2;
-          break;
-        case '-':
-          result = +arg1 - +arg2;
-          break;
-        case '/':
-          result = +arg1 / +arg2;
-          break;
-        case '*':
-          result = +arg1 * +arg2;
-          break;
-      }
-      if (result === Infinity)
+      if (result === Infinity) {
         throw new TypeError('TypeError: Division by zero.');
+      }
       operandStack.push(result);
 
       prevOperatorObject = findOperator(peek(operatorStack));
@@ -135,7 +126,6 @@ function expressionCalculator(expr) {
         operatorStack.push(token);
         break;
       }
-
       if (operatorObject.priority > prevOperatorObject.priority) {
         operatorStack.push(token);
       }
@@ -145,23 +135,10 @@ function expressionCalculator(expr) {
     const arg2 = operandStack.pop();
     const operator = operatorStack.pop();
     const arg1 = operandStack.pop();
-    let result;
-    switch (operator) {
-      case '+':
-        result = +arg1 + +arg2;
-        break;
-      case '-':
-        result = +arg1 - +arg2;
-        break;
-      case '/':
-        result = +arg1 / +arg2;
-        break;
-      case '*':
-        result = +arg1 * +arg2;
-        break;
-    }
-    if (result === Infinity)
+    let result = switchOperator(operator, arg1, arg2);
+    if (result === Infinity) {
       throw new TypeError('TypeError: Division by zero.');
+    }
     operandStack.push(result);
   }
 
