@@ -60,15 +60,8 @@ function expressionCalculator(expr) {
     }
 
     const prevOperator = peek(operatorStack);
-    const prevOperand = peek(operandStack);
-
     const operatorObject = findOperator(token);
     let prevOperatorObject = findOperator(prevOperator);
-
-    if (operatorObject.priority > prevOperatorObject.priority) {
-      operatorStack.push(token);
-      continue;
-    }
 
     if (isRight(token)) {
       while (peek(operatorStack) !== Parenthesis.LEFT) {
@@ -94,18 +87,30 @@ function expressionCalculator(expr) {
           throw new TypeError('TypeError: Division by zero.');
 
         operandStack.push(result);
-        operatorStack.pop();
-        // continue;
       }
       operatorStack.pop();
       continue;
     }
 
-    while (operatorObject.priority <= prevOperatorObject.priority) {
+    if (
+      isLeft(prevOperator) ||
+      isRight(token) ||
+      isRight(prevOperator) ||
+      operatorObject.priority > prevOperatorObject.priority
+    ) {
+      operatorStack.push(token);
+      continue;
+    }
+
+    while (
+      prevOperatorObject &&
+      operatorObject.priority <= prevOperatorObject.priority
+    ) {
       const arg2 = operandStack.pop();
       const operator = operatorStack.pop();
       const arg1 = operandStack.pop();
       let result;
+
       switch (operator) {
         case '+':
           result = +arg1 + +arg2;
@@ -123,11 +128,14 @@ function expressionCalculator(expr) {
       if (result === Infinity)
         throw new TypeError('TypeError: Division by zero.');
       operandStack.push(result);
+
       prevOperatorObject = findOperator(peek(operatorStack));
+
       if (!prevOperatorObject) {
         operatorStack.push(token);
         break;
       }
+
       if (operatorObject.priority > prevOperatorObject.priority) {
         operatorStack.push(token);
       }
@@ -156,7 +164,7 @@ function expressionCalculator(expr) {
       throw new TypeError('TypeError: Division by zero.');
     operandStack.push(result);
   }
-  console.log(operandStack, operatorStack);
+
   return peek(operandStack);
 }
 
